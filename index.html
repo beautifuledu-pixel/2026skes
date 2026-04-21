@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>신광초등학교 온라인 교무실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR','Apple SD Gothic Neo',sans-serif;background:#f7f8fa;color:#1a1a2e;font-size:13px}
+.app{max-width:960px;margin:0 auto;background:#fff;min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,0.08)}
+.header{background:#1a1a2e;padding:16px 28px;display:flex;align-items:center;justify-content:space-between}
+.header-left{display:flex;align-items:center;gap:12px}
+.school-logo{width:38px;height:38px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#1a1a2e;flex-shrink:0}
+.school-title{color:#fff;font-size:16px;font-weight:700}
+.header-date{color:rgba(255,255,255,0.55);font-size:12px;white-space:nowrap}
+.tabs{display:flex;background:#f7f8fa;border-bottom:1px solid #eee;padding:0 28px;gap:0;overflow-x:auto}
+.tab{padding:13px 20px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:#888;white-space:nowrap;font-weight:500;transition:all .15s}
+.tab.active{color:#1a1a2e;border-bottom-color:#1a1a2e}
+.tab:hover{color:#1a1a2e}
+.content{padding:28px}
+.panel{display:none}
+.panel.active{display:block}
+
+/* 오늘 뭐하지 */
+.today-date{font-size:15px;font-weight:700;margin-bottom:16px}
+.notice-card{border-radius:12px;padding:14px 16px;margin-bottom:10px;border-left:4px solid #378ADD;background:#f0f6ff}
+.notice-card.urgent{border-left-color:#E24B4A;background:#fff5f5}
+.notice-card.repeat{border-left-color:#D4537E;background:#fff0f6}
+.notice-title{font-size:13px;font-weight:600;color:#1a1a2e}
+.notice-meta{font-size:11px;color:#aaa;margin-top:4px}
+.empty{color:#bbb;font-size:13px;text-align:center;padding:40px 0}
+
+/* 월간계획 */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-month-label{font-size:15px;font-weight:700}
+.cal-navs{display:flex;gap:6px}
+.cal-nav{background:#f7f8fa;border:1px solid #eee;border-radius:8px;padding:5px 14px;cursor:pointer;font-size:12px;color:#555;font-family:'Noto Sans KR',sans-serif}
+.cal-nav:hover{background:#eee}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border-top:1px solid #eee;border-left:1px solid #eee}
+.cal-dow{text-align:center;padding:8px 2px;font-size:11px;font-weight:600;color:#888;background:#fafafa;border-right:1px solid #eee;border-bottom:1px solid #eee}
+.cal-dow.sun{color:#E24B4A}.cal-dow.sat{color:#378ADD}
+.cal-cell{border-right:1px solid #eee;border-bottom:1px solid #eee;padding:6px;min-height:84px;cursor:pointer;transition:background .1s;vertical-align:top}
+.cal-cell:hover{background:#fafafa}
+.cal-cell.other{background:#fafafa}
+.cal-cell.other .dn{color:#ccc}
+.cal-cell.today .dn-inner{background:#1a1a2e;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.dn{font-size:11px;margin-bottom:3px;display:flex}
+.dn.sun{color:#E24B4A}.dn.sat{color:#378ADD}
+.ev{font-size:10px;padding:1px 5px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-blue{background:#ddeeff;color:#0C447C}
+.ev-red{background:#ffecec;color:#A32D2D}
+.ev-pink{background:#fce4f0;color:#72243E}
+.ev-yellow{background:#fffbe6;color:#7a5c00}
+.more{font-size:10px;color:#bbb;padding-left:2px}
+.legend{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:4px;font-size:11px;color:#888}
+.leg-dot{width:10px;height:10px;border-radius:2px}
+.day-detail{background:#fff;border:1px solid #eee;border-radius:12px;padding:16px;margin-top:16px}
+.day-detail-title{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.close-btn{font-size:11px;color:#aaa;cursor:pointer;background:#f7f8fa;border:1px solid #eee;padding:3px 10px;border-radius:8px;font-family:'Noto Sans KR',sans-serif}
+
+/* 한번 더 확인 */
+.check-header{font-size:11px;font-weight:700;color:#aaa;margin-bottom:14px;letter-spacing:.05em}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:#fdf8ff;border-radius:12px;margin-bottom:8px;border-left:3px solid #D4537E}
+.check-num{width:24px;height:24px;border-radius:50%;background:#D4537E;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.check-text{font-size:13px;font-weight:500;color:#1a1a2e;line-height:1.6}
+.check-period{font-size:11px;color:#ccc;margin-top:3px}
+
+/* 자료실 */
+.drive-section{margin-bottom:24px}
+.drive-section-title{font-size:11px;font-weight:700;color:#aaa;letter-spacing:.06em;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #f0f0f0}
+.drive-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.drive-card{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;border-radius:10px;border:1px solid #eee;text-decoration:none;color:#1a1a2e;transition:all .15s}
+.drive-card:hover{background:#fff;border-color:#ccc;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.drive-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.drive-name{font-size:12px;font-weight:600}
+.drive-sub{font-size:10px;color:#aaa;margin-top:2px}
+
+/* 미세먼지 */
+.dust-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.dust-card{border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:all .3s}
+.dust-bg-icon{position:absolute;right:14px;top:14px;font-size:32px;opacity:0.15}
+.dust-label{font-size:11px;font-weight:600;opacity:.7;margin-bottom:8px}
+.dust-val{font-size:40px;font-weight:700;line-height:1}
+.dust-unit{font-size:11px;opacity:.6;margin-left:2px}
+.dust-grade{font-size:14px;font-weight:700;margin-top:8px}
+.g-good{background:#E8F5E9;color:#2E7D32}
+.g-normal{background:#FFF8E1;color:#E65100}
+.g-bad{background:#FBE9E7;color:#BF360C}
+.g-vbad{background:#FCE4EC;color:#880E4F}
+.g-load{background:#f5f5f5;color:#9e9e9e}
+.dust-banner{border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:12px;transition:all .3s}
+.dust-banner-icon{font-size:26px}
+.dust-banner-text{font-size:13px;font-weight:600;flex:1;line-height:1.4}
+.dust-footer{display:flex;justify-content:space-between;align-items:center}
+.dust-station{font-size:11px;color:#ccc}
+.dust-time{font-size:11px;color:#ccc}
+.refresh-btn{background:none;border:none;cursor:pointer;font-size:18px;color:#ccc;transition:transform .3s;font-family:'Noto Sans KR',sans-serif}
+.refresh-btn:hover{color:#555;transform:rotate(180deg)}
+.refresh-btn.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="school-logo">신</div>
+      <div class="school-title">신광초등학교 온라인 교무실</div>
+    </div>
+    <div class="header-date" id="hdate"></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="sw('today')">오늘 뭐하지?</div>
+    <div class="tab" onclick="sw('cal')">월간계획</div>
+    <div class="tab" onclick="sw('check')">한번 더 확인!</div>
+    <div class="tab" onclick="sw('drive')">자료실</div>
+    <div class="tab" onclick="sw('dust')">미세먼지</div>
+  </div>
+
+  <div class="content">
+
+    <div class="panel active" id="p-today">
+      <div class="today-date" id="today-title"></div>
+      <div id="today-list"></div>
+    </div>
+
+    <div class="panel" id="p-cal">
+      <div class="cal-header">
+        <div class="cal-month-label" id="cal-label"></div>
+        <div class="cal-navs">
+          <button class="cal-nav" onclick="mv(-1)">◀</button>
+          <button class="cal-nav" onclick="mv(0)">오늘</button>
+          <button class="cal-nav" onclick="mv(1)">▶</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="legend">
+        <div class="leg"><div class="leg-dot" style="background:#ddeeff"></div>안내</div>
+        <div class="leg"><div class="leg-dot" style="background:#ffecec"></div>긴급</div>
+        <div class="leg"><div class="leg-dot" style="background:#fce4f0"></div>반복</div>
+        <div class="leg"><div class="leg-dot" style="background:#fffbe6"></div>생일</div>
+      </div>
+      <div id="day-detail" style="display:none"></div>
+    </div>
+
+    <div class="panel" id="p-check">
+      <div class="check-header" id="check-title"></div>
+      <div id="check-list"></div>
+    </div>
+
+    <div class="panel" id="p-drive">
+      <div class="drive-section">
+        <div class="drive-section-title">공통 서식</div>
+        <div class="drive-grid">
+          <a class="drive-card" href="https://drive.google.com" target="_blank">
+            <div class="drive-icon" style="background:#E8F0FE;color:#1a73e8">G</div>
+            <div><div class="drive-name">가정통신문</div><div class="drive-sub">양식 모음</div></div>
+          </a>
+          <a class="drive-card" href="https://drive.google.com" target="_blank">
+            <div class="drive-icon" style="background:#E8F0FE;color:#1a73e8">G</div>
+            <div><div class="drive-name">각종 서식</div><div class="drive-sub">공문 양식</div></div>
+          </a>
+          <a class="drive-card" href="https://drive.google.com" target="_blank">
+            <div class="drive-icon" style="background:#E8F0FE;color:#1a73e8">G</div>
+            <div><div class="drive-name">학교 행사자료</div><div class="drive-sub">현수막·포스터</div></div>
+          </a>
+        </div>
+      </div>
+      <div class="drive-section">
+        <div class="drive-section-title">부서별 자료</div>
+        <div class="drive-grid">
+          <a class="drive-card" href="https://drive.google.com" target="_blank">
+            <div class="drive-icon" style="background:#E6F4EA;color:#1a7340">교</div>
+            <div><div class="drive-name">교무부</div><div class="drive-sub">학사·업무분장</div></div>
+          </a>
+          <a class="drive-card" href="https://drive.google.com" target="_blank">
+            <div class="drive-icon" style="background:#FEF3E2;color:#b45309">연</div>
+            <div><div class="drive-name">연구부</div><div class="drive-sub">수업·장학자료</div></div>
+          </a>
+          <a class="drive-card" href="https://drive.google.com" target="_blank">
+            <div class="drive-icon" style="background:#FBE8F0;color:#9d174d">생</div>
+            <div><div class="drive-name">생활지도부</div><div class="drive-sub">생활·상담자료</div></div>
+          </a>
+          <a class="drive-card" href="https://drive.google.com" target="_blank">
+            <div class="drive-icon" style="background:#EEEDFE;color:#3C3489">체</div>
+            <div><div class="drive-name">체육부</div><div class="drive-sub">체육·스포츠클럽</div></div>
+          </a>
+          <a class="drive-card" href="https://drive.google.com" target="_blank">
+            <div class="drive-icon" style="background:#FEECEC;color:#A32D2D">영</div>
+            <div><div class="drive-name">영양·보건</div><div class="drive-sub">급식·보건자료</div></div>
+          </a>
+          <a class="drive-card" href="https://drive.google.com" target="_blank">
+            <div class="drive-icon" style="background:#E1F5EE;color:#085041">행</div>
+            <div><div class="drive-name">행정실</div><div class="drive-sub">예산·시설</div></div>
+          </a>
+        </div>
+      </div>
+      <div class="drive-section">
+        <div class="drive-section-title">바로가기</div>
+        <div class="drive-grid">
+          <a class="drive-card" href="https://www.neis.go.kr" target="_blank">
+            <div class="drive-icon" style="background:#E6F4EA;color:#1a7340">N</div>
+            <div><div class="drive-name">나이스(NEIS)</div><div class="drive-sub">교육행정정보</div></div>
+          </a>
+          <a class="drive-card" href="https://www.sen.go.kr" target="_blank">
+            <div class="drive-icon" style="background:#E6F1FB;color:#0C447C">서</div>
+            <div><div class="drive-name">서울시교육청</div><div class="drive-sub">공문·안내</div></div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="p-dust">
+      <div class="dust-wrap">
+        <div class="dust-card g-load" id="d10">
+          <div class="dust-bg-icon" id="d10i">💨</div>
+          <div class="dust-label">미세먼지 PM10</div>
+          <div class="dust-val" id="d10v">--<span class="dust-unit">㎍/㎥</span></div>
+          <div class="dust-grade" id="d10g">로딩 중</div>
+        </div>
+        <div class="dust-card g-load" id="d25">
+          <div class="dust-bg-icon" id="d25i">🌫</div>
+          <div class="dust-label">초미세먼지 PM2.5</div>
+          <div class="dust-val" id="d25v">--<span class="dust-unit">㎍/㎥</span></div>
+          <div class="dust-grade" id="d25g">로딩 중</div>
+        </div>
+      </div>
+      <div class="dust-banner g-load" id="dbanner">
+        <div class="dust-banner-icon" id="dbicon">⏳</div>
+        <div class="dust-banner-text" id="dbtxt">대기질 정보를 불러오는 중입니다...</div>
+      </div>
+      <div class="dust-footer">
+        <div class="dust-station">에어코리아 · 서울 용산구 청파동</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="dust-time" id="dust-time">--:-- 기준</div>
+          <button class="refresh-btn" onclick="fetchDust()" id="rfbtn">↻</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const TODAY = new Date();
+let cy = TODAY.getFullYear(), cm = TODAY.getMonth();
+const WD = ['일','월','화','수','목','금','토'];
+
+let EVS = [
+  {title:'과학의 달 행사', start:'2026-04-14', end:'2026-04-30', days:[2,4], type:'blue'},
+  {title:'학부모 상담주간', start:'2026-04-21', end:'2026-04-25', days:[1,2,3,4,5], type:'blue'},
+  {title:'명성준 생일', start:'2026-04-02', end:'2026-04-02', days:[], type:'yellow'},
+  {title:'이반유 생일', start:'2026-04-10', end:'2026-04-10', days:[], type:'yellow'},
+  {title:'이담 생일', start:'2026-04-15', end:'2026-04-15', days:[], type:'yellow'},
+  {title:'김지후 생일', start:'2026-04-16', end:'2026-04-16', days:[], type:'yellow'},
+  {title:'강지석 생일', start:'2026-04-30', end:'2026-04-30', days:[], type:'yellow'},
+];
+
+const CKS = [
+  {txt:'질서 및 안전 지도(학교버스, 인사, 급식, 화장실 등) 철저', start:'2026-03-01', end:'2026-12-31', days:[1,2,3,4,5]},
+  {txt:'청탁금지법 관련 숙지 및 공직 기강 철저', start:'2026-03-01', end:'2026-12-31', days:[1,2,3,4,5]},
+  {txt:'학생 출결 사항은 매일 쿨메신저로 교담교사에게 사전전달', start:'2026-03-01', end:'2026-12-31', days:[1,2,3,4,5]},
+  {txt:'교담수업 이동 담임임장 지도 철저', start:'2026-03-01', end:'2026-12-31', days:[1,2,3,4,5]},
+  {txt:'특별실 이동 시 수업 전·후 교사 인솔 철저 — 천천히 이동, 줄서는 순서 정하기, 학생인계 철저', start:'2026-03-01', end:'2026-12-31', days:[1,2,3,4,5]},
+  {txt:'교복 착용 안내 담임 지도 아래 개인차별 단정히 교복 착용', start:'2026-03-01', end:'2026-12-31', days:[1,2,3,4,5]},
+  {txt:'기안문 품의요령 숙지 및 결재까지 확인', start:'2026-03-01', end:'2026-12-31', days:[1,2,3,4,5]},
+];
+
+const TC = {blue:'ev-blue', red:'ev-red', pink:'ev-pink', yellow:'ev-yellow'};
+const NC = {blue:'', red:'urgent', pink:'repeat', yellow:''};
+
+function pd(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function fd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+function match(ev, ds){
+  const d=pd(ds), s=pd(ev.start), e=pd(ev.end||ev.start);
+  if(d<s||d>e) return false;
+  if(ev.days&&ev.days.length>0) return ev.days.includes(d.getDay());
+  return fd(d)===ev.start;
+}
+
+function renderToday(){
+  const ds = fd(TODAY);
+  document.getElementById('today-title').textContent = `오늘의 공지 — ${TODAY.getFullYear()}년 ${TODAY.getMonth()+1}월 ${TODAY.getDate()}일 (${WD[TODAY.getDay()]})`;
+  const evs = EVS.filter(e=>match(e,ds));
+  const el = document.getElementById('today-list');
+  if(!evs.length){el.innerHTML='<div class="empty">오늘 등록된 공지가 없습니다</div>';return;}
+  el.innerHTML = evs.map(e=>`
+    <div class="notice-card ${NC[e.type]||''}">
+      <div class="notice-title">${e.title}</div>
+      <div class="notice-meta">${e.days&&e.days.length?'반복일정 · '+e.start+' ~ '+e.end:'단일 공지 · '+e.start}</div>
+    </div>`).join('');
+}
+
+function renderCal(){
+  document.getElementById('cal-label').textContent = cy+'년 '+(cm+1)+'월';
+  const first=new Date(cy,cm,1), last=new Date(cy,cm+1,0);
+  let h='';
+  ['일','월','화','수','목','금','토'].forEach((d,i)=>h+=`<div class="cal-dow${i===0?' sun':i===6?' sat':''}">${d}</div>`);
+  for(let i=0;i<first.getDay();i++){
+    const d=new Date(cy,cm,1-first.getDay()+i);
+    h+=`<div class="cal-cell other"><div class="dn">${d.getDate()}</div></div>`;
+  }
+  for(let day=1;day<=last.getDate();day++){
+    const d=new Date(cy,cm,day), ds=fd(d), dw=d.getDay();
+    const isT=(cy===TODAY.getFullYear()&&cm===TODAY.getMonth()&&day===TODAY.getDate());
+    const evs=EVS.filter(e=>match(e,ds));
+    const shown=evs.slice(0,3), rest=evs.length-3;
+    h+=`<div class="cal-cell${isT?' today':''}" onclick="showDay('${ds}')">
+      <div class="dn${dw===0?' sun':dw===6?' sat':''}">${isT?`<span class="dn-inner">${day}</span>`:day}</div>
+      ${shown.map(e=>`<div class="ev ${TC[e.type]||'ev-blue'}">${e.title}</div>`).join('')}
+      ${rest>0?`<div class="more">+${rest}</div>`:''}
+    </div>`;
+  }
+  const ld=last.getDay();
+  if(ld<6) for(let i=1;i<=6-ld;i++) h+=`<div class="cal-cell other"><div class="dn">${i}</div></div>`;
+  document.getElementById('cal-grid').innerHTML=h;
+  document.getElementById('day-detail').style.display='none';
+}
+
+function showDay(ds){
+  const d=pd(ds);
+  const evs=EVS.filter(e=>match(e,ds));
+  const el=document.getElementById('day-detail');
+  el.style.display='block';
+  if(!evs.length){
+    el.innerHTML=`<div class="day-detail"><div class="day-detail-title">${d.getMonth()+1}월 ${d.getDate()}일 (${WD[d.getDay()]})<button class="close-btn" onclick="document.getElementById('day-detail').style.display='none'">닫기</button></div><div style="color:#bbb;font-size:13px;text-align:center;padding:20px 0">이 날 등록된 일정이 없습니다</div></div>`;
+    return;
+  }
+  el.innerHTML=`<div class="day-detail">
+    <div class="day-detail-title">${d.getMonth()+1}월 ${d.getDate()}일 (${WD[d.getDay()]}) 일정
+      <button class="close-btn" onclick="document.getElementById('day-detail').style.display='none'">닫기</button>
+    </div>
+    ${evs.map(e=>`<div class="notice-card ${NC[e.type]||''}"><div class="notice-title">${e.title}</div><div class="notice-meta">${e.start}${e.end&&e.end!==e.start?' ~ '+e.end:''}</div></div>`).join('')}
+  </div>`;
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function mv(d){
+  if(d===0){cy=TODAY.getFullYear();cm=TODAY.getMonth();}
+  else{cm+=d;if(cm<0){cm=11;cy--;}if(cm>11){cm=0;cy++;}}
+  renderCal();
+}
+
+function renderChecks(){
+  const ds=fd(TODAY);
+  document.getElementById('check-title').textContent=`${TODAY.getMonth()+1}월 ${TODAY.getDate()}일 (${WD[TODAY.getDay()]}) · 오늘의 확인사항`;
+  const items=CKS.filter(c=>match(c,ds));
+  const el=document.getElementById('check-list');
+  if(!items.length){el.innerHTML='<div class="empty">오늘 해당 항목이 없습니다</div>';return;}
+  el.innerHTML=items.map((c,i)=>`
+    <div class="check-item">
+      <div class="check-num">${i+1}</div>
+      <div>
+        <div class="check-text">${c.txt}</div>
+        <div class="check-period">${c.start} ~ ${c.end}</div>
+      </div>
+    </div>`).join('');
+}
+
+const PM10G=[
+  {max:30, grade:'좋음', cls:'g-good', icon:'😊', banner:'오늘 야외활동 하기 좋은 날이에요!'},
+  {max:80, grade:'보통', cls:'g-normal', icon:'🙂', banner:'민감한 학생은 야외활동 시 주의하세요'},
+  {max:150, grade:'나쁨', cls:'g-bad', icon:'😷', banner:'야외활동을 자제하고 마스크를 착용하세요'},
+  {max:Infinity, grade:'매우나쁨', cls:'g-vbad', icon:'🚫', banner:'야외활동 금지! 실내 수업을 권장합니다'},
+];
+const PM25G=[
+  {max:15, grade:'좋음', cls:'g-good'},
+  {max:35, grade:'보통', cls:'g-normal'},
+  {max:75, grade:'나쁨', cls:'g-bad'},
+  {max:Infinity, grade:'매우나쁨', cls:'g-vbad'},
+];
+function gg(v,g){const n=parseFloat(v);if(isNaN(n))return null;return g.find(x=>n<=x.max);}
+
+async function fetchDust(){
+  const btn=document.getElementById('rfbtn');
+  btn.classList.add('spin');
+  try{
+    const key='d31521ab499ea5b52e2c821efca9b70722e1328d85929fb0e15f7246e67fa50f';
+    const url=`https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty?stationName=${encodeURIComponent('용산구')}&dataTerm=DAILY&pageNo=1&numOfRows=1&returnType=json&serviceKey=${key}&ver=1.0`;
+    const res=await fetch(url);
+    const data=await res.json();
+    const item=data?.response?.body?.items?.[0];
+    if(!item) throw new Error('no data');
+    const now=new Date();
+    document.getElementById('dust-time').textContent=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 기준`;
+    const g10=gg(item.pm10Value,PM10G), g25=gg(item.pm25Value,PM25G);
+    document.getElementById('d10').className=`dust-card ${g10?.cls||'g-load'}`;
+    document.getElementById('d10v').innerHTML=`${item.pm10Value||'--'}<span class="dust-unit">㎍/㎥</span>`;
+    document.getElementById('d10g').textContent=g10?.grade||'--';
+    document.getElementById('d10i').textContent=g10?.icon||'💨';
+    document.getElementById('d25').className=`dust-card ${g25?.cls||'g-load'}`;
+    document.getElementById('d25v').innerHTML=`${item.pm25Value||'--'}<span class="dust-unit">㎍/㎥</span>`;
+    document.getElementById('d25g').textContent=g25?.grade||'--';
+    document.getElementById('d25i').textContent=g25?.icon||'🌫';
+    document.getElementById('dbanner').className=`dust-banner ${g10?.cls||'g-load'}`;
+    document.getElementById('dbicon').textContent=g10?.icon||'⏳';
+    document.getElementById('dbtxt').textContent=g10?.banner||'정보를 불러오는 중...';
+  }catch(e){
+    document.getElementById('dbtxt').textContent='데이터를 불러오지 못했습니다. ↻ 버튼을 눌러 다시 시도해주세요.';
+    document.getElementById('dbicon').textContent='⚠️';
+  }finally{btn.classList.remove('spin');}
+}
+
+function sw(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const ids=['today','cal','check','drive','dust'];
+    t.classList.toggle('active',ids[i]===id);
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('p-'+id).classList.add('active');
+  if(id==='cal') renderCal();
+  if(id==='dust') fetchDust();
+}
+
+const d=TODAY;
+document.getElementById('hdate').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${WD[d.getDay()]})`;
+renderToday();
+renderChecks();
+</script>
+</body>
+</html>
